@@ -2,11 +2,10 @@ package com.example.todolist.services;
 
 import com.example.todolist.Bot;
 import com.example.todolist.model.Event;
-import com.example.todolist.repository.EventRepository;
-import com.example.todolist.util.MessageUser;
-import com.example.todolist.util.StepAndTypeCommandBot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.function.BiConsumer;
 
 
 @Service
@@ -28,26 +27,22 @@ public class EventEditService {
     public final String FINISH_EVENT_TEXT = "Время и дата конца";
     public final String NOTIFY_TEXT = "Оповещение в минутах";
     private static Event event;
-    private static int editStep;
+    private static boolean routeStep;
     private static int answer;
     private final EventService eventService;
-    private final EventRepository eventRepository;
-
 
     @Autowired
-    public EventEditService(EventService eventService, EventRepository eventRepository) {
+    public EventEditService(EventService eventService) {
         this.eventService = eventService;
-        this.eventRepository = eventRepository;
     }
 
-
-    public void edit(String idChat, int questionNumber, String text) {
+    public void edit(String idChat, int questionNumber, String text, BiConsumer<String, String> sendMsg) {
 
 //STEP 1
         if (questionNumber == 0) {
 
             Bot.stepPosition++;
-            MessageUser.send(idChat, SPECIFY_EVENT_ID);
+            sendMsg.accept(idChat, SPECIFY_EVENT_ID);
 
         }
 
@@ -55,92 +50,85 @@ public class EventEditService {
         if (questionNumber == 1) {
 
             Long idEvent = Long.parseLong(text);
-            event = eventRepository.findById(idEvent).orElse(null);
+            event = eventService.find(idEvent);
 
-            if (event != null && editStep == 0) {
-                editStep = -1;
+            if (event != null && !routeStep) {
+                routeStep = true;
                 Bot.stepPosition++;
-                MessageUser.send(idChat, QUESTION_EDIT);
+                sendMsg.accept(idChat, QUESTION_EDIT);
 
             } else {
-                StepAndTypeCommandBot.reset();
-                MessageUser.send(idChat, EVENT_MISSING_BY_ID);
+                sendMsg.accept(idChat, EVENT_MISSING_BY_ID);
             }
 
         }
 
 //STEP 3
         if (text.equalsIgnoreCase(NAME_TEXT)) {
-            MessageUser.send(idChat, NAME_TEXT_NEW);
+            sendMsg.accept(idChat, NAME_TEXT_NEW);
             answer = 1;
         } else if (answer == 1) {
             event.setName(text);
-            new EventService().save(event);
-            editStep = 0;
+            eventService.save(event);
+            routeStep = false;
             answer = 0;
-            StepAndTypeCommandBot.reset();
-            MessageUser.send(idChat, SUCCESSFUL_CHANGE);
+            sendMsg.accept(idChat, SUCCESSFUL_CHANGE);
         }
 
         if (text.equalsIgnoreCase(DESCRIPTION_TEXT)) {
-            MessageUser.send(idChat, DESCRIPTION_TEXT_NEW);
+            sendMsg.accept(idChat, DESCRIPTION_TEXT_NEW);
             answer = 2;
         } else if (answer == 2) {
             event.setDescription(text);
             eventService.save(event);
-            editStep = 0;
+            routeStep = false;
             answer = 0;
-            StepAndTypeCommandBot.reset();
-            MessageUser.send(idChat, SUCCESSFUL_CHANGE);
+            sendMsg.accept(idChat, SUCCESSFUL_CHANGE);
         }
 
         if (text.equalsIgnoreCase(PLACE_TEXT)) {
-            MessageUser.send(idChat, PLACE_TEXT_NEW);
+            sendMsg.accept(idChat, PLACE_TEXT_NEW);
             answer = 3;
         } else if (answer == 3) {
             event.setPlace(text);
             eventService.save(event);
-            editStep = 0;
+            routeStep = false;
             answer = 0;
-            StepAndTypeCommandBot.reset();
-            MessageUser.send(idChat, SUCCESSFUL_CHANGE);
+            sendMsg.accept(idChat, SUCCESSFUL_CHANGE);
         }
 
         if (text.equalsIgnoreCase(START_EVENT_TEXT)) {
-            MessageUser.send(idChat, START_EVENT_TEXT_NEW);
+            sendMsg.accept(idChat, START_EVENT_TEXT_NEW);
             answer = 4;
         } else if (answer == 4) {
             event.setPlace(text);
             eventService.save(event);
-            editStep = 0;
+            routeStep = false;
             answer = 0;
-            StepAndTypeCommandBot.reset();
-            MessageUser.send(idChat, SUCCESSFUL_CHANGE);
+            sendMsg.accept(idChat, SUCCESSFUL_CHANGE);
         }
 
         if (text.equalsIgnoreCase(FINISH_EVENT_TEXT)) {
-            MessageUser.send(idChat, FINISH_EVENT_TEXT_NEW);
+            sendMsg.accept(idChat, FINISH_EVENT_TEXT_NEW);
             answer = 5;
         } else if (answer == 5) {
             event.setPlace(text);
             eventService.save(event);
-            editStep = 0;
+            routeStep = false;
             answer = 0;
-            StepAndTypeCommandBot.reset();
-            MessageUser.send(idChat, SUCCESSFUL_CHANGE);
+            sendMsg.accept(idChat, SUCCESSFUL_CHANGE);
         }
 
 
         if (text.equalsIgnoreCase(NOTIFY_TEXT)) {
-            MessageUser.send(idChat, SAVE_EVENT_TEXT_NEW);
+            sendMsg.accept(idChat, SAVE_EVENT_TEXT_NEW);
             answer = 6;
         } else if (answer == 6) {
             event.setPlace(text);
             eventService.save(event);
-            editStep = 0;
+            routeStep = false;
             answer = 0;
-            StepAndTypeCommandBot.reset();
-            MessageUser.send(idChat, SUCCESSFUL_CHANGE);
+            sendMsg.accept(idChat, SUCCESSFUL_CHANGE);
         }
     }
 

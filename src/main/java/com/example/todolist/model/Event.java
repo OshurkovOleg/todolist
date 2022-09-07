@@ -31,13 +31,18 @@ public class Event {
     private LocalDateTime lastUpdate;
     @Column(name = "duration")
     private long duration;
-    @Column(name = "notify_before_event_hours")
+    @Column(name = "notify_event")
     private int notifyBeforeEventHours;
+    @Column(name = "notify_status")
+    private boolean notifyStatus;
 
     public Event() {
     }
 
-    public Event(String name, String description, String place, LocalDateTime startExecution, LocalDateTime endExecution, LocalDateTime dateCreation, LocalDateTime lastUpdate, long duration, int notifyBeforeEventHours) {
+    public Event(String name, String description, String place, LocalDateTime startExecution,
+                 LocalDateTime endExecution, LocalDateTime dateCreation, LocalDateTime lastUpdate,
+                 long duration, int notifyBeforeEventHours, boolean notifyStatus) {
+        this.id = id;
         this.name = name;
         this.description = description;
         this.place = place;
@@ -47,6 +52,7 @@ public class Event {
         this.lastUpdate = lastUpdate;
         this.duration = duration;
         this.notifyBeforeEventHours = notifyBeforeEventHours;
+        this.notifyStatus = notifyStatus;
     }
 
     @Override

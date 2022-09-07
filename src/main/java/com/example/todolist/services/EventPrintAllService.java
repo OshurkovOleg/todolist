@@ -1,25 +1,25 @@
 package com.example.todolist.services;
 
 import com.example.todolist.model.Event;
-import com.example.todolist.util.MessageUser;
-import com.example.todolist.util.StepAndTypeCommandBot;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.function.BiConsumer;
 
 @Service
 public class EventPrintAllService {
 
-    EventService eventService;
+    private final EventService eventService;
 
-    @Autowired
     public EventPrintAllService(EventService eventService) {
         this.eventService = eventService;
     }
 
-    public void printAll(String idChat) {
-        StepAndTypeCommandBot.reset();
-        for (Event event : eventService.printAll()) {
-            MessageUser.send(idChat, event.toString());
+    public void printAll(String idChat, BiConsumer<String, String> test) {
+        List<Event> eventList = eventService.getAllEventAsListFromBase();
+
+        for (Event event : eventList) {
+            test.accept(idChat, event.toString());
         }
     }
 

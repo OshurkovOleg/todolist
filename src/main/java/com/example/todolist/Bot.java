@@ -4,21 +4,28 @@ import com.example.todolist.services.EventAddService;
 import com.example.todolist.services.EventDeleteService;
 import com.example.todolist.services.EventEditService;
 import com.example.todolist.services.EventPrintAllService;
+import com.example.todolist.util.StepAndTypeCommandBot;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.TelegramBotsApi;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 import java.util.ArrayList;
 
+@Slf4j
 @Component
 public class Bot extends TelegramLongPollingBot {
     private final String name = "EventLogBot";
     private final String token = "5610627690:AAHBq3KzQr2WUKU5oOMCDu9nfHQzhPJAoTA";
-    private static EventEditService eventEditService;
-    private static EventAddService eventAddService;
-    private static EventDeleteService eventDeleteService;
-    private static EventPrintAllService eventPrintAllService;
+    private EventEditService eventEditService;
+    private EventAddService eventAddService;
+    private EventDeleteService eventDeleteService;
+    private EventPrintAllService eventPrintAllService;
     public static ArrayList<String> listUserAnswer = new ArrayList<>();
     public static int typeCommand = 0;
     public static int stepPosition = 0;
@@ -26,10 +33,18 @@ public class Bot extends TelegramLongPollingBot {
     @Autowired
     public Bot(EventEditService eventEditService, EventAddService eventAddService,
                EventDeleteService eventDeleteService, EventPrintAllService eventPrintAllService) {
-        Bot.eventEditService = eventEditService;
-        Bot.eventAddService = eventAddService;
-        Bot.eventDeleteService = eventDeleteService;
-        Bot.eventPrintAllService = eventPrintAllService;
+        this.eventEditService = eventEditService;
+        this.eventAddService = eventAddService;
+        this.eventDeleteService = eventDeleteService;
+        this.eventPrintAllService = eventPrintAllService;
+
+        try {
+            TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
+            botsApi.registerBot(this);
+            log.info("Bot started");
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
     }
 
     public Bot() {
@@ -54,25 +69,27 @@ public class Bot extends TelegramLongPollingBot {
         if (textMessage.contains("/")) {
 
             if (textMessage.contains("/add")) {
-                stepPosition = 0;
+                StepAndTypeCommandBot.reset();
                 typeCommand = 1;
-                eventAddService.add(chatIdUser, stepPosition, listUserAnswer);
+                eventAddService.add(chatIdUser, stepPosition, listUserAnswer, this::send);
             }
 
             if (textMessage.contains("/delete")) {
-                stepPosition = 0;
+                StepAndTypeCommandBot.reset();
                 typeCommand = 2;
-                eventDeleteService.delete(chatIdUser, stepPosition, textMessage);
+                eventDeleteService.delete(chatIdUser, stepPosition, textMessage, this::send);
             }
 
             if (textMessage.contains("/edit")) {
-                stepPosition = 0;
+                StepAndTypeCommandBot.reset();
                 typeCommand = 3;
-                eventEditService.edit(chatIdUser, stepPosition, textMessage);
+                eventEditService.edit(chatIdUser, stepPosition, textMessage, this::send);
             }
 
             if (textMessage.contains("/print")) {
-                eventPrintAllService.printAll(chatIdUser);
+                StepAndTypeCommandBot.reset();
+                typeCommand = 4;
+                eventPrintAllService.printAll(chatIdUser, this::send);
             }
 
 
@@ -80,17 +97,55 @@ public class Bot extends TelegramLongPollingBot {
 
             if (typeCommand == 1) {
                 listUserAnswer.add(textMessage);
-                eventAddService.add(chatIdUser, stepPosition, listUserAnswer);
+                eventAddService.add(chatIdUser, stepPosition, listUserAnswer, this::send);
             }
 
             if (typeCommand == 2) {
-                eventDeleteService.delete(chatIdUser, stepPosition, textMessage);
+                eventDeleteService.delete(chatIdUser, stepPosition, textMessage, this::send);
             }
 
             if (typeCommand == 3) {
-                eventEditService.edit(chatIdUser, stepPosition, textMessage);
+                eventEditService.edit(chatIdUser, stepPosition, textMessage, this::send);
             }
-
         }
     }
+
+    final SendMessage sendMessage = new SendMessage();
+
+    private void send(String idChatUser, String text) {
+
+        try {
+            sendMessage.enableMarkdown(true);
+            sendMessage.setChatId(idChatUser);
+            sendMessage.setText(text);
+            this.execute(sendMessage);
+
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
 }
+
+
+
+
+/*
+    public void setButton(SendMessage sendMessage) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(); // создаем клавиатуру 1
+        sendMessage.setReplyMarkup(replyKeyboardMarkup); //связываем сообщение с клавиатурой
+        replyKeyboardMarkup.setSelective(true); // параметр отображения клавиатуры
+        replyKeyboardMarkup.setResizeKeyboard(true); //авто-подгон клавиатуры под кнопки для пользователя
+        replyKeyboardMarkup.setOneTimeKeyboard(true); //скрывать или не скрывать клавиатуру после выбора пользователя
+
+        List<KeyboardRow> keyboardRowList = new ArrayList<>(); //создаем список контейнеров с кнопками 2
+
+        KeyboardRow keyboardFirstRow = new KeyboardRow(); //создаем контейнер для кнопок
+        keyboardFirstRow.add(new KeyboardButton("Первая кнопка")); // добавляем кнопку в контейнер keyboardFirstRow 3
+        keyboardFirstRow.add(new KeyboardButton("Вторая кнопка")); // добавляем кнопку в контейнер keyboardFirstRow 3
+
+        keyboardRowList.add(keyboardFirstRow); // в список контейнеров добавляем наш контейнер keyboardFirstRow с созданными кнопками
+        replyKeyboardMarkup.setKeyboard(keyboardRowList); // добавили в клавиатуру список контейнеров с кнопками 4
+
+
+    }*/

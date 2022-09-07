@@ -9,13 +9,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@Service()
+@Service
 public class EventService {
-    private static EventRepository eventRepository;
+    private EventRepository eventRepository;
 
     @Autowired
     public EventService(EventRepository eventRepository) {
-        EventService.eventRepository = eventRepository;
+        this.eventRepository = eventRepository;
     }
 
     public EventService() {
@@ -29,10 +29,14 @@ public class EventService {
         eventRepository.save(event);
     }
 
-    public List<Event> printAll() {
+    public List<Event> getAllEventAsListFromBase() {
         List<Event> eventsList = new ArrayList<>();
         eventRepository.findAll().forEach(eventsList::add);
         return eventsList;
+    }
+
+    public Event find(Long id) {
+        return eventRepository.findById(id).orElse(null);
     }
 
     public void deleteEvent(Long id) {

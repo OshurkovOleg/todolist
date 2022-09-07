@@ -2,9 +2,7 @@ package com.example.todolist.services;
 
 import com.example.todolist.Bot;
 import com.example.todolist.model.Event;
-import com.example.todolist.util.MessageUser;
 import com.example.todolist.util.ParserStringToLocalDate;
-import com.example.todolist.util.StepAndTypeCommandBot;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,7 +10,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.function.BiConsumer;
 
 
 @Service
@@ -35,25 +33,25 @@ public class EventAddService {
 
     }
 
-    public void add(String idChat, int step, ArrayList<String> listUserAnswer) {
+    public void add(String idChat, int step, ArrayList<String> listUserAnswer, BiConsumer<String, String> test) {
+
         if (step < 6) {
             Bot.stepPosition++;
         } else {
             Event newEvent = getCompleteEvent(listUserAnswer);
             log.info(EVENT_CREATED_TEXT_LOG);
             eventService.save(newEvent);
-            StepAndTypeCommandBot.reset();
             Bot.listUserAnswer = new ArrayList<>();
-            MessageUser.send(idChat, SAVE_EVENT_TEXT);
+            test.accept(idChat, SAVE_EVENT_TEXT);
         }
 
         switch (step) {
-            case 0 -> MessageUser.send(idChat, NAME_TEXT);
-            case 1 -> MessageUser.send(idChat, DESCRIPTION_TEXT);
-            case 2 -> MessageUser.send(idChat, PLACE_TEXT);
-            case 3 -> MessageUser.send(idChat, START_EVENT_TEXT);
-            case 4 -> MessageUser.send(idChat, FINISH_EVENT_TEXT);
-            case 5 -> MessageUser.send(idChat, NOTIFY_TEXT);
+            case 0 -> test.accept(idChat, NAME_TEXT);
+            case 1 -> test.accept(idChat, DESCRIPTION_TEXT);
+            case 2 -> test.accept(idChat, PLACE_TEXT);
+            case 3 -> test.accept(idChat, START_EVENT_TEXT);
+            case 4 -> test.accept(idChat, FINISH_EVENT_TEXT);
+            case 5 -> test.accept(idChat, NOTIFY_TEXT);
         }
     }
 
@@ -68,9 +66,9 @@ public class EventAddService {
         LocalDateTime currentDate = LocalDateTime.now();
         long eventDuration = startEvent.until(finishEvent, ChronoUnit.HOURS);
         int notify = Integer.parseInt(data.get(5));
+        boolean notifyStatus = false;
 
-        return new Event(name, description, place, startEvent, finishEvent, currentDate, currentDate, eventDuration, notify);
+        return new Event(name, description, place, startEvent, finishEvent, currentDate, currentDate, eventDuration, notify, notifyStatus);
     }
-
 
 }
