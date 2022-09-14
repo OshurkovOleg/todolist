@@ -6,8 +6,9 @@ public class StepAndTypeCommandBot {
 
     private StepAndTypeCommandBot() {
     }
+
     public static void reset() {
-        Bot.stepPosition = 0;
-        Bot.typeCommand = 0;
+        Bot.stepNumber = 0;
+        Bot.commandType = 0;
     }
 }

@@ -54,6 +54,9 @@ public class Event {
         this.notifyBeforeEventHours = notifyBeforeEventHours;
         this.notifyStatus = notifyStatus;
     }
+    public String getIdEvent() {
+        return String.format("%s", id);
+    }
 
     @Override
     public String toString() {

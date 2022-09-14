@@ -5,9 +5,9 @@ import com.example.todolist.repository.EventRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class EventService {
@@ -16,13 +16,6 @@ public class EventService {
     @Autowired
     public EventService(EventRepository eventRepository) {
         this.eventRepository = eventRepository;
-    }
-
-    public EventService() {
-    }
-
-    public Optional<Event> findByIdEvent(Long id) {
-        return eventRepository.findById(id);
     }
 
     public void save(Event event) {
@@ -41,6 +34,14 @@ public class EventService {
 
     public void deleteEvent(Long id) {
         eventRepository.deleteById(id);
+    }
+
+    public Long getNextEvent() {
+        return eventRepository.findFirstByStartExecutionAfterOrderByEndExecution(LocalDateTime.now()).getId();
+    }
+
+    public List<Event> getBetweenDatesListEvents(LocalDateTime start, LocalDateTime end) {
+        return eventRepository.findAllByStartExecutionBetween(start, end);
     }
 
 
