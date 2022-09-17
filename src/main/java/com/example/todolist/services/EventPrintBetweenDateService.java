@@ -2,6 +2,7 @@ package com.example.todolist.services;
 
 import com.example.todolist.Bot;
 import com.example.todolist.model.Event;
+import com.example.todolist.util.FourthConsumer;
 import com.example.todolist.util.ParserStringToLocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -13,10 +14,7 @@ import java.util.ArrayList;
 public class EventPrintBetweenDateService {
     public static final String START_DATE = "Укажите с какой даты";
     public static final String END_DATE = "Укажите конечную дату";
-
-    private LocalDateTime start;
-    private LocalDateTime end;
-    private EventService eventService;
+    private final EventService eventService;
 
     @Autowired
     public EventPrintBetweenDateService(EventService eventService) {
@@ -25,6 +23,10 @@ public class EventPrintBetweenDateService {
 
     public void print(String idChat, ArrayList<String> listAnswer, FourthConsumer<String, String, Integer, Integer> sendMsg,
                       Integer commandType, Integer stepNumber) {
+
+        LocalDateTime start;
+        LocalDateTime end;
+
 
         if (stepNumber == 0) {
             Bot.stepNumber++;

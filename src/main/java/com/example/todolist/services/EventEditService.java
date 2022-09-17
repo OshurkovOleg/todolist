@@ -2,8 +2,12 @@ package com.example.todolist.services;
 
 import com.example.todolist.Bot;
 import com.example.todolist.model.Event;
+import com.example.todolist.util.FourthConsumer;
+import com.example.todolist.util.ParserStringToLocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 
 @Service
@@ -100,7 +104,8 @@ public class EventEditService {
             sendMsg.accept(idChat, START_EVENT_TEXT_NEW, commandType, stepNumber);
             answer = 4;
         } else if (answer == 4) {
-            event.setPlace(textMsg);
+            LocalDateTime startDate = ParserStringToLocalDate.parsing(textMsg);
+            event.setStartExecution(startDate);
             eventService.save(event);
             routeStep = false;
             answer = 0;
@@ -111,7 +116,8 @@ public class EventEditService {
             sendMsg.accept(idChat, FINISH_EVENT_TEXT_NEW, commandType, stepNumber);
             answer = 5;
         } else if (answer == 5) {
-            event.setPlace(textMsg);
+            LocalDateTime endDate = ParserStringToLocalDate.parsing(textMsg);
+            event.setEndExecution(endDate);
             eventService.save(event);
             routeStep = false;
             answer = 0;
@@ -123,12 +129,15 @@ public class EventEditService {
             sendMsg.accept(idChat, SAVE_EVENT_TEXT_NEW, commandType, stepNumber);
             answer = 6;
         } else if (answer == 6) {
-            event.setPlace(textMsg);
+            int timeNotify = Integer.parseInt(textMsg);
+            event.setNotifyBeforeEventHours(timeNotify);
             eventService.save(event);
             routeStep = false;
             answer = 0;
             sendMsg.accept(idChat, SUCCESSFUL_CHANGE, commandType, stepNumber);
         }
+
+
     }
 
 }

@@ -1,12 +1,13 @@
 package com.example.todolist.services;
 
 import com.example.todolist.model.Event;
+import com.example.todolist.util.FourthConsumer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class EventPrintNextService {
-    private EventService eventService;
+    private final EventService eventService;
 
     @Autowired
     public EventPrintNextService(EventService eventService) {

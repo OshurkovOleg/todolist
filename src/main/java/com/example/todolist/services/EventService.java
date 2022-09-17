@@ -2,14 +2,17 @@ package com.example.todolist.services;
 
 import com.example.todolist.model.Event;
 import com.example.todolist.repository.EventRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@Slf4j
 public class EventService {
     private EventRepository eventRepository;
 
@@ -37,10 +40,17 @@ public class EventService {
     }
 
     public Long getNextEvent() {
-        return eventRepository.findFirstByStartExecutionAfterOrderByEndExecution(LocalDateTime.now()).getId();
+        try {
+            /*return Optional.of(eventRepository.findFirstByStartExecutionAfterOrderByEndExecution(LocalDateTime.now()))
+                    .orElse()*/ //TODO конструктор
+            return eventRepository.findFirstByStartExecutionAfterOrderByEndExecution(LocalDateTime.now()).getId();
+        }catch (NullPointerException e){
+            return 0L;
+        }
     }
 
     public List<Event> getBetweenDatesListEvents(LocalDateTime start, LocalDateTime end) {
+        log.info("");//TODO инфа
         return eventRepository.findAllByStartExecutionBetween(start, end);
     }
 

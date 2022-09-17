@@ -2,6 +2,7 @@ package com.example.todolist.services;
 
 import com.example.todolist.Bot;
 import com.example.todolist.model.Event;
+import com.example.todolist.util.FourthConsumer;
 import com.example.todolist.util.ParserStringToLocalDate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +40,8 @@ public class EventAddService {
         if (stepNumber < 6) {
             Bot.stepNumber++;
         } else {
-            Event newEvent = getCompleteEvent(listUserAnswer);
+            long chatID = Long.parseLong(idChat);
+            Event newEvent = getCompleteEvent(listUserAnswer, chatID);
             log.info(EVENT_CREATED_TEXT_LOG);
             eventService.save(newEvent);
             Bot.listUserAnswer.clear();
@@ -56,7 +58,7 @@ public class EventAddService {
         }
     }
 
-    private Event getCompleteEvent(ArrayList<String> data) {
+    private Event getCompleteEvent(ArrayList<String> data, long chatID) {
 
         String name = data.get(0);
         String description = data.get(1);
@@ -71,7 +73,7 @@ public class EventAddService {
         boolean notifyStatus = false;
 
         return new Event(name, description, place, startEvent, finishEvent, currentDate, currentDate,
-                eventDuration, notify, notifyStatus);
+                eventDuration, notify, notifyStatus, chatID);
     }
 
 }

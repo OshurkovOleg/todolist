@@ -1,10 +1,13 @@
 package com.example.todolist;
 
 import com.example.todolist.model.Event;
+import com.example.todolist.property.BotProperty;
 import com.example.todolist.services.*;
 import com.example.todolist.util.StepAndTypeCommandBot;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
@@ -16,18 +19,20 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
+@EnableScheduling
 @Component
 public class Bot extends TelegramLongPollingBot {
-    private static final String FIELD_NAME = "Название";
-    private static final String FIELD_DESCRIPTION = "Описание";
-    private static final String FIELD_PLACE = "Место";
-    private static final String FIELD_NOTIFY = "Оповещение в минутах";
-    private final String name = "EventLogBot";
-    private final String token = "5610627690:AAHBq3KzQr2WUKU5oOMCDu9nfHQzhPJAoTA";
+    private final String FIELD_NAME = "Название";
+    private final String FIELD_DESCRIPTION = "Описание";
+    private final String FIELD_PLACE = "Место";
+    private final String FIELD_NOTIFY = "Оповещение в минутах";
+    private  String START_EVENT_TEXT = "Время и дата начала";
+    private final String FINISH_EVENT_TEXT = "Время и дата конца";
     private EventEditService eventEditService;
     private EventAddService eventAddService;
     private EventDeleteService eventDeleteService;
@@ -35,15 +40,16 @@ public class Bot extends TelegramLongPollingBot {
     private EventPrintNextService eventPrintNextService;
     private EventPrintBetweenDateService eventPrintBetweenDateService;
     private EventService eventService;
+    private BotProperty botProperty;
     public static ArrayList<String> listUserAnswer = new ArrayList<>();
     public static Integer commandType = 0;
     public static int stepNumber = 0;
 
     @Autowired
     private Bot(EventEditService eventEditService, EventAddService eventAddService,
-               EventDeleteService eventDeleteService, EventPrintAllService eventPrintAllService,
-               EventPrintNextService eventPrintNextService, EventService eventService,
-               EventPrintBetweenDateService eventPrintBetweenDateService) {
+                EventDeleteService eventDeleteService, EventPrintAllService eventPrintAllService,
+                EventPrintNextService eventPrintNextService, EventService eventService,
+                EventPrintBetweenDateService eventPrintBetweenDateService, BotProperty botProperty) {
 
         this.eventEditService = eventEditService;
         this.eventAddService = eventAddService;
@@ -52,6 +58,7 @@ public class Bot extends TelegramLongPollingBot {
         this.eventPrintNextService = eventPrintNextService;
         this.eventService = eventService;
         this.eventPrintBetweenDateService = eventPrintBetweenDateService;
+        this.botProperty = botProperty;
 
         try {
             TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
@@ -69,12 +76,12 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public String getBotUsername() {
-        return name;
+        return botProperty.getName();
     }
 
     @Override
     public String getBotToken() {
-        return token;
+        return botProperty.getToken();
     }
 
     @Override
@@ -170,8 +177,43 @@ public class Bot extends TelegramLongPollingBot {
         }
     }
 
+    @Scheduled(fixedDelay = 2000)
+    public void notifyByDate() {
 
-    public void setButton(SendMessage sendMessage, Integer typeCommand, Integer stepNumber) {
+        if (eventService.find(eventService.getNextEvent()) != null) {
+
+            Event event = eventService.find(eventService.getNextEvent()); //TODO не ищем ближайший ивент
+
+            long chatID = event.getChatID();
+            LocalDateTime startEventDate = event.getStartExecution();
+            int notificationTime = event.getNotifyBeforeEventHours();
+
+            LocalDateTime dateMinusNotifyTime = startEventDate.minusMinutes(notificationTime);
+
+            if (LocalDateTime.now().isAfter(dateMinusNotifyTime)) {
+                if (!event.isNotifyStatus()) {
+                    sendMsg(chatID, event, notificationTime);
+                    event.setNotifyStatus(true);
+                    eventService.save(event);
+                }
+            }
+        }
+    }
+
+    private void sendMsg(long chatID, Event event, int minutesToDate) {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.enableMarkdown(true);
+        sendMessage.setChatId(chatID);
+        sendMessage.setText("!!!Осталось менее " + minutesToDate + " минут до начала события!!! \n" +
+                event.toString());
+        try {
+            this.execute(sendMessage);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void setButton(SendMessage sendMessage, Integer typeCommand, Integer stepNumber) {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
         replyKeyboardMarkup.setSelective(true);
         replyKeyboardMarkup.setResizeKeyboard(true);
@@ -196,6 +238,8 @@ public class Bot extends TelegramLongPollingBot {
             keyboardFirstRow.add(new KeyboardButton(FIELD_DESCRIPTION));
             keyboardFirstRow.add(new KeyboardButton(FIELD_PLACE));
             keyboardFirstRow.add(new KeyboardButton(FIELD_NOTIFY));
+            keyboardFirstRow.add(new KeyboardButton(START_EVENT_TEXT));
+            keyboardFirstRow.add(new KeyboardButton(FINISH_EVENT_TEXT));
         }
 
         if (typeCommand == 3 && stepNumber == 0) {

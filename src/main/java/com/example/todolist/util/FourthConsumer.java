@@ -1,4 +1,4 @@
-package com.example.todolist.services;
+package com.example.todolist.util;
 
 @FunctionalInterface
 public interface FourthConsumer<I, T, C, S> {

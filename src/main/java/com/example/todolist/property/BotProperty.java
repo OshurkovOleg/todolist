@@ -1,13 +1,14 @@
 package com.example.todolist.property;
 
-import org.springframework.beans.factory.annotation.Value;
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 
 @Configuration
+@ConfigurationProperties(prefix = "bot")
+@Data
 public class BotProperty {
-    @Value("name")
-    String name;
-    @Value("token")
-    String token;
+    private  String name;
+    private  String token;
+
 }
