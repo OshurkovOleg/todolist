@@ -9,25 +9,11 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+import static com.example.todolist.constants.Constants.*;
+
 
 @Service
 public class EventEditService {
-    private final String SPECIFY_EVENT_ID = "Укажите id события";
-    private final String SUCCESSFUL_CHANGE = "Изменение успешно внесено";
-    private final String SAVE_EVENT_TEXT_NEW = "Укажите новое оповещение в минутах";
-    private final String FINISH_EVENT_TEXT_NEW = "Укажите новые время и дату конца";
-    private final String START_EVENT_TEXT_NEW = "Укажите новые время и дату начала";
-    private final String PLACE_TEXT_NEW = "Новое место";
-    private final String DESCRIPTION_TEXT_NEW = "Новое описание";
-    private final String NAME_TEXT_NEW = "Новое название";
-    private final String EVENT_MISSING_BY_ID = "Событие с указанным id отсутствует";
-    private final String QUESTION_EDIT = "Что редактируем?";
-    private final String NAME_TEXT = "Название";
-    private final String DESCRIPTION_TEXT = "Описание";
-    private final String PLACE_TEXT = "Место";
-    private final String START_EVENT_TEXT = "Время и дата начала";
-    private final String FINISH_EVENT_TEXT = "Время и дата конца";
-    private final String NOTIFY_TEXT = "Оповещение в минутах";
     private static Event event;
     private static boolean routeStep;
     private static int answer;
@@ -38,7 +24,7 @@ public class EventEditService {
         this.eventService = eventService;
     }
 
-    public void edit(String idChat, String textMsg, FourthConsumer<String, String, Integer, Integer> sendMsg,
+    public void edit(Long idChat, String textMsg, FourthConsumer<Long, String, Integer, Integer> sendMsg,
                      Integer commandType, Integer stepNumber) {
 
 //STEP 1

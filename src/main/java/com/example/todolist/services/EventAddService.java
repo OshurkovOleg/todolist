@@ -2,48 +2,48 @@ package com.example.todolist.services;
 
 import com.example.todolist.Bot;
 import com.example.todolist.model.Event;
+import com.example.todolist.model.Person;
 import com.example.todolist.util.FourthConsumer;
 import com.example.todolist.util.ParserStringToLocalDate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.imageio.plugins.jpeg.JPEGImageReadParam;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+
+import static com.example.todolist.constants.Constants.*;
 
 
 @Service
 @Slf4j
 public class EventAddService {
 
-    private final String EVENT_CREATED_TEXT_LOG = "Событие создано";
-    private final String NAME_TEXT = "Название";
-    private final String DESCRIPTION_TEXT = "Описание";
-    private final String PLACE_TEXT = "Место";
-    private final String START_EVENT_TEXT = "Время и дата начала";
-    private final String FINISH_EVENT_TEXT = "Время и дата конца";
-    private final String NOTIFY_TEXT = "Оповещение в минутах";
-    private final String SAVE_EVENT_TEXT = "Событие сохранено";
     private final EventService eventService;
+    private final PersonService personService;
 
     @Autowired
-    public EventAddService(EventService eventService) {
+    public EventAddService(EventService eventService, PersonService personService) {
         this.eventService = eventService;
-
+        this.personService = personService;
     }
 
-    public void add(String idChat, ArrayList<String> listUserAnswer,
-                    FourthConsumer<String, String, Integer, Integer> sendMsg,
+    public void add(long idChat, ArrayList<String> listUserAnswer,
+                    FourthConsumer<Long, String, Integer, Integer> sendMsg,
                     Integer commandType, Integer stepNumber) {
 
         if (stepNumber < 6) {
             Bot.stepNumber++;
         } else {
-            long chatID = Long.parseLong(idChat);
-            Event newEvent = getCompleteEvent(listUserAnswer, chatID);
+            Event newEvent = getCompleteEvent(listUserAnswer, idChat);
             log.info(EVENT_CREATED_TEXT_LOG);
             eventService.save(newEvent);
+            Person person = new Person(idChat, newEvent);
+            personService.save(person);
+            person.getEvents().add(newEvent);
+
             Bot.listUserAnswer.clear();
             sendMsg.accept(idChat, SAVE_EVENT_TEXT, commandType, stepNumber);
         }
@@ -71,6 +71,7 @@ public class EventAddService {
         long eventDuration = startEvent.until(finishEvent, ChronoUnit.HOURS);
         int notify = Integer.parseInt(data.get(5));
         boolean notifyStatus = false;
+
 
         return new Event(name, description, place, startEvent, finishEvent, currentDate, currentDate,
                 eventDuration, notify, notifyStatus, chatID);

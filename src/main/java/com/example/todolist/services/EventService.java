@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -44,14 +43,18 @@ public class EventService {
             /*return Optional.of(eventRepository.findFirstByStartExecutionAfterOrderByEndExecution(LocalDateTime.now()))
                     .orElse()*/ //TODO конструктор
             return eventRepository.findFirstByStartExecutionAfterOrderByEndExecution(LocalDateTime.now()).getId();
-        }catch (NullPointerException e){
+        } catch (NullPointerException e) {
             return 0L;
         }
     }
 
     public List<Event> getBetweenDatesListEvents(LocalDateTime start, LocalDateTime end) {
-        log.info("");//TODO инфа
+        log.info("Запустился метод получения событий в отрезке времени");
         return eventRepository.findAllByStartExecutionBetween(start, end);
+    }
+
+    public ArrayList<Event> getAllEventIsAfterDateNow() {
+        return (ArrayList<Event>) eventRepository.findAllByStartExecutionAfter(LocalDateTime.now());
     }
 
 

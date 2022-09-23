@@ -10,10 +10,10 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
+import static com.example.todolist.constants.Constants.*;
+
 @Component
 public class EventPrintBetweenDateService {
-    public static final String START_DATE = "Укажите с какой даты";
-    public static final String END_DATE = "Укажите конечную дату";
     private final EventService eventService;
 
     @Autowired
@@ -21,7 +21,7 @@ public class EventPrintBetweenDateService {
         this.eventService = eventService;
     }
 
-    public void print(String idChat, ArrayList<String> listAnswer, FourthConsumer<String, String, Integer, Integer> sendMsg,
+    public void print(Long idChat, ArrayList<String> listAnswer, FourthConsumer<Long, String, Integer, Integer> sendMsg,
                       Integer commandType, Integer stepNumber) {
 
         LocalDateTime start;

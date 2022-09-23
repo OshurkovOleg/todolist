@@ -23,16 +23,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.example.todolist.constants.Constants.*;
+
+
 @Slf4j
 @EnableScheduling
 @Component
 public class Bot extends TelegramLongPollingBot {
-    private final String FIELD_NAME = "Название";
-    private final String FIELD_DESCRIPTION = "Описание";
-    private final String FIELD_PLACE = "Место";
-    private final String FIELD_NOTIFY = "Оповещение в минутах";
-    private  String START_EVENT_TEXT = "Время и дата начала";
-    private final String FINISH_EVENT_TEXT = "Время и дата конца";
     private EventEditService eventEditService;
     private EventAddService eventAddService;
     private EventDeleteService eventDeleteService;
@@ -87,45 +84,50 @@ public class Bot extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
 
-        String chatIdUser = update.getMessage().getChatId().toString();
+        String chatIdUserStr = update.getMessage().getChatId().toString();
+        long chatIdLong = Long.parseLong(chatIdUserStr);
         String textMessage = update.getMessage().getText();
 
+
+
         if (textMessage.contains("/")) {
+
+
 
             if (textMessage.equals("/add")) {
                 StepAndTypeCommandBot.reset();
                 commandType = 1;
-                eventAddService.add(chatIdUser, listUserAnswer, this::send, commandType, stepNumber);
+                eventAddService.add(chatIdLong, listUserAnswer, this::send, commandType, stepNumber);
             }
 
             if (textMessage.equals("/delete")) {
                 StepAndTypeCommandBot.reset();
                 commandType = 2;
-                eventDeleteService.delete(chatIdUser, textMessage, this::send, commandType, stepNumber);
+                eventDeleteService.delete(chatIdLong, textMessage, this::send, commandType, stepNumber);
             }
 
             if (textMessage.equals("/edit")) {
                 StepAndTypeCommandBot.reset();
                 commandType = 3;
-                eventEditService.edit(chatIdUser, textMessage, this::send, commandType, stepNumber);
+                eventEditService.edit(chatIdLong, textMessage, this::send, commandType, stepNumber);
             }
 
             if (textMessage.equals("/print")) {
                 StepAndTypeCommandBot.reset();
                 commandType = 4;
-                eventPrintAllService.printAll(chatIdUser, this::send, commandType, stepNumber);
+                eventPrintAllService.printAll(chatIdLong, this::send, commandType, stepNumber);
             }
 
             if (textMessage.equals("/print_next_event")) {
                 StepAndTypeCommandBot.reset();
                 commandType = 5;
-                eventPrintNextService.print(chatIdUser, this::send, commandType, stepNumber);
+                eventPrintNextService.print(chatIdLong, this::send, commandType, stepNumber);
             }
 
             if (textMessage.equals("/print_event_by_date")) {
                 StepAndTypeCommandBot.reset();
                 commandType = 6;
-                eventPrintBetweenDateService.print(chatIdUser, listUserAnswer, this::send, commandType, stepNumber);
+                eventPrintBetweenDateService.print(chatIdLong, listUserAnswer, this::send, commandType, stepNumber);
 
 
             }
@@ -135,27 +137,27 @@ public class Bot extends TelegramLongPollingBot {
 
             if (commandType == 1) {
                 listUserAnswer.add(textMessage);
-                eventAddService.add(chatIdUser, listUserAnswer, this::send, commandType, stepNumber);
+                eventAddService.add(chatIdLong, listUserAnswer, this::send, commandType, stepNumber);
             }
 
             if (commandType == 2) {
-                eventDeleteService.delete(chatIdUser, textMessage, this::send, commandType, stepNumber);
+                eventDeleteService.delete(chatIdLong, textMessage, this::send, commandType, stepNumber);
             }
 
             if (commandType == 3) {
-                eventEditService.edit(chatIdUser, textMessage, this::send, commandType, stepNumber);
+                eventEditService.edit(chatIdLong, textMessage, this::send, commandType, stepNumber);
             }
 
             if (commandType == 6) {
                 listUserAnswer.add(textMessage);
-                eventPrintBetweenDateService.print(chatIdUser, listUserAnswer, this::send, commandType, stepNumber);
+                eventPrintBetweenDateService.print(chatIdLong, listUserAnswer, this::send, commandType, stepNumber);
             }
         }
     }
 
     final SendMessage sendMessage = new SendMessage();
 
-    private void send(String idChatUser, String text, Integer commandType, Integer stepNumber) {
+    private void send(Long idChatUser, String text, Integer commandType, Integer stepNumber) {
 
         try {
             sendMessage.enableMarkdown(true);
@@ -180,31 +182,33 @@ public class Bot extends TelegramLongPollingBot {
     @Scheduled(fixedDelay = 2000)
     public void notifyByDate() {
 
-        if (eventService.find(eventService.getNextEvent()) != null) {
+        if (eventService.getAllEventIsAfterDateNow().size() != 0) {
 
-            Event event = eventService.find(eventService.getNextEvent()); //TODO не ищем ближайший ивент
+            ArrayList<Event> listEvent = eventService.getAllEventIsAfterDateNow();
 
-            long chatID = event.getChatID();
-            LocalDateTime startEventDate = event.getStartExecution();
-            int notificationTime = event.getNotifyBeforeEventHours();
+            for (Event event : listEvent) {
+                long chatID = event.getChatID();
+                LocalDateTime startEventDate = event.getStartExecution();
+                int notificationTime = event.getNotifyBeforeEventHours();
 
-            LocalDateTime dateMinusNotifyTime = startEventDate.minusMinutes(notificationTime);
+                LocalDateTime dateMinusNotifyTime = startEventDate.minusMinutes(notificationTime);
 
-            if (LocalDateTime.now().isAfter(dateMinusNotifyTime)) {
-                if (!event.isNotifyStatus()) {
-                    sendMsg(chatID, event, notificationTime);
-                    event.setNotifyStatus(true);
-                    eventService.save(event);
+                if (LocalDateTime.now().isAfter(dateMinusNotifyTime)) {
+                    if (!event.isNotifyStatus()) {
+                        sendMsg(chatID, event, notificationTime);
+                        event.setNotifyStatus(true);
+                        eventService.save(event);
+                    }
                 }
             }
         }
     }
 
-    private void sendMsg(long chatID, Event event, int minutesToDate) {
+    private void sendMsg(Long chatID, Event event, int minutesToDate) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.enableMarkdown(true);
         sendMessage.setChatId(chatID);
-        sendMessage.setText("!!!Осталось менее " + minutesToDate + " минут до начала события!!! \n" +
+        sendMessage.setText(String.format(WARNING_TEXT_NOTIFY, minutesToDate) +
                 event.toString());
         try {
             this.execute(sendMessage);
@@ -231,13 +235,14 @@ public class Bot extends TelegramLongPollingBot {
             for (Event event : listEvents) {
                 keyboardFirstRow.add(new KeyboardButton(event.getIdEvent()));
             }
+
         }
 
         if (typeCommand == 3 && stepNumber == 1) {
-            keyboardFirstRow.add(new KeyboardButton(FIELD_NAME));
-            keyboardFirstRow.add(new KeyboardButton(FIELD_DESCRIPTION));
-            keyboardFirstRow.add(new KeyboardButton(FIELD_PLACE));
-            keyboardFirstRow.add(new KeyboardButton(FIELD_NOTIFY));
+            keyboardFirstRow.add(new KeyboardButton(NAME_TEXT));
+            keyboardFirstRow.add(new KeyboardButton(DESCRIPTION_TEXT));
+            keyboardFirstRow.add(new KeyboardButton(PLACE_TEXT));
+            keyboardFirstRow.add(new KeyboardButton(NOTIFY_TEXT));
             keyboardFirstRow.add(new KeyboardButton(START_EVENT_TEXT));
             keyboardFirstRow.add(new KeyboardButton(FINISH_EVENT_TEXT));
         }

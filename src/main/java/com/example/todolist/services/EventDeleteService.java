@@ -5,19 +5,19 @@ import com.example.todolist.util.FourthConsumer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import static com.example.todolist.constants.Constants.DELETE_EVENT_TEXT;
+import static com.example.todolist.constants.Constants.SPECIFY_EVENT_ID;
+
 @Service
 public class EventDeleteService {
-    private final String SPECIFY_EVENT_ID = "Укажите id события";
-    private final String DELETE_EVENT_TEXT = "Событие удалено";
     private final EventService eventService;
-
 
     @Autowired
     public EventDeleteService(EventService eventService) {
         this.eventService = eventService;
     }
 
-    public void delete(String idChat, String textMsg, FourthConsumer<String, String, Integer, Integer> sendMsg,
+    public void delete(Long idChat, String textMsg, FourthConsumer<Long, String, Integer, Integer> sendMsg,
                        Integer commandType, Integer stepNumber) {
 
         if (stepNumber == 0) {

@@ -14,7 +14,7 @@ public class EventPrintNextService {
         this.eventService = eventService;
     }
 
-    public void print(String idChat, FourthConsumer<String, String, Integer, Integer> sendMsg,
+    public void print(Long idChat, FourthConsumer<Long, String, Integer, Integer> sendMsg,
                       Integer commandType, Integer stepNumber) {
         Event event = eventService.find(eventService.getNextEvent());
         sendMsg.accept(idChat, event.toString(), commandType, stepNumber);

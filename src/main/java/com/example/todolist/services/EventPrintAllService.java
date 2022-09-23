@@ -1,11 +1,8 @@
 package com.example.todolist.services;
 
-import com.example.todolist.model.Event;
 import com.example.todolist.util.FourthConsumer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.Comparator;
 
 @Service
 public class EventPrintAllService {
@@ -17,12 +14,17 @@ public class EventPrintAllService {
         this.eventService = eventService;
     }
 
-    public void printAll(String idChat, FourthConsumer<String, String, Integer, Integer> sendMsg,
+    public void printAll(Long idChat, FourthConsumer<Long, String, Integer, Integer> sendMsg,
                          Integer commandType, Integer stepNumber) {
 
-        eventService.getAllEventAsListFromBase().stream()
+    /*    eventService.getAllEventAsListFromBase().stream()
                 .sorted(Comparator.comparing(Event::getStartExecution))
+                .forEach(event -> sendMsg.accept(idChat, event.toString(), commandType, stepNumber));*/
+
+        eventService.getAllEventAsListFromBase().stream()
+                .filter(event -> event.getChatID() == idChat)
                 .forEach(event -> sendMsg.accept(idChat, event.toString(), commandType, stepNumber));
+
 
     }
 

@@ -38,6 +38,10 @@ public class Event {
     @Column(name = "chat_id")
     private long chatID;
 
+    @ManyToOne
+    @JoinColumn(name = "person_chat_id", referencedColumnName = "chat_id")
+    private Person person;
+
     public Event() {
     }
 
