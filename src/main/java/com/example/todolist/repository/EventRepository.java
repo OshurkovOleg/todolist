@@ -10,9 +10,10 @@ import java.util.List;
 @Repository()
 public interface EventRepository extends CrudRepository<Event, Long> {
     Event findFirstByStartExecutionAfterOrderByEndExecution(LocalDateTime dateCreation);
-    List<Event> findAllByStartExecutionBetween(LocalDateTime start, LocalDateTime end);
-    List<Event> findAllByStartExecutionAfter(LocalDateTime nowLocalDate);
 
+    List<Event> findAllByStartExecutionBetween(LocalDateTime start, LocalDateTime end);
+
+    List<Event> findAllByStartExecutionAfter(LocalDateTime nowLocalDate);
 }
 
 

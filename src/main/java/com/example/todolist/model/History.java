@@ -11,9 +11,8 @@ import java.time.LocalDateTime;
 @Entity
 @DynamicInsert
 @DynamicUpdate
-@Table(name = "events")
-public class Event {
-
+@Table(name = "history")
+public class History {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -42,33 +41,21 @@ public class Event {
     @Column(name = "chat_id")
     private long chatID;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
-    @JoinColumn(name = "owner_id", referencedColumnName = "person_chat_id")
-    private Person owner;
-
-
-    public Event() {
+    public History() {
     }
 
-    public Event(String name, String description, String place, LocalDateTime startExecution,
-                 LocalDateTime endExecution, LocalDateTime dateCreation, LocalDateTime lastUpdate,
-                 long duration, int notifyBeforeEventHours, boolean notifyStatus, long chatID) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.place = place;
-        this.startExecution = startExecution;
-        this.endExecution = endExecution;
-        this.dateCreation = dateCreation;
-        this.lastUpdate = lastUpdate;
-        this.duration = duration;
-        this.notifyBeforeEventHours = notifyBeforeEventHours;
-        this.notifyStatus = notifyStatus;
-        this.chatID = chatID;
-    }
-
-    public String getIdEvent() {
-        return String.format("%s", id);
+    public History(Event event) {
+        this.name = event.getName();
+        this.description = event.getDescription();
+        this.place = event.getPlace();
+        this.startExecution = event.getStartExecution();
+        this.endExecution = event.getEndExecution();
+        this.dateCreation = event.getDateCreation();
+        this.lastUpdate = event.getLastUpdate();
+        this.duration = event.getDuration();
+        this.notifyBeforeEventHours = event.getNotifyBeforeEventHours();
+        this.notifyStatus = event.isNotifyStatus();
+        this.chatID = event.getChatID();
     }
 
     @Override
@@ -80,6 +67,5 @@ public class Event {
                 + "Начало события = " + startExecution + "\n"
                 + "Конец события = " + endExecution + "\n";
     }
-
 
 }

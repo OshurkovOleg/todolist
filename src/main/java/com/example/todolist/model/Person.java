@@ -1,41 +1,66 @@
 package com.example.todolist.model;
 
 import lombok.Data;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.List;
 
-@Entity
-@Table(name = "person")
 @Data
-public class Person {
+@Entity
+@DynamicInsert
+@DynamicUpdate
+@Table(name = "person")
+public class Person implements Serializable {
 
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name = "person_name")
-    private String personName;
 
     @Column(name = "person_chat_id")
     private Long personChatId;
 
-    @OneToMany(mappedBy = "person")
-    private List<Event> events;
+    @Column(name = "first_name")
+    private String firstName;
 
-    public Person() {
+    @Column(name = "last_name")
+    private String lastName;
+
+    @Column(name = "user_name")
+    private String userName;
+
+    @Column(name = "language_code")
+    private String languageCode;
+
+    public Person(Long personChatId, String firstName, String lastName, String userName, String languageCode) {
+        this.personChatId = personChatId;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.userName = userName;
+        this.languageCode = languageCode;
     }
 
-    public Person(Long personChatId, Event event) {
-        this.personChatId = personChatId;
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "owner")
+    private List<Event> events;
+
+
+    public Person() {
     }
 
     @Override
     public String toString() {
         return "Person{" +
-                "personName='" + personName + '\'' +
+                "id=" + id +
                 ", personChatId=" + personChatId +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", userName='" + userName + '\'' +
+                ", languageCode='" + languageCode + '\'' +
+                ", events=" + events +
                 '}';
     }
 }

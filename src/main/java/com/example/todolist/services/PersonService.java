@@ -17,4 +17,9 @@ public class PersonService {
     public void save(Person person) {
         personRepository.save(person);
     }
+
+    public Person getByChatId(Long chatId) {
+        return personRepository.findFirstByPersonChatId(chatId);
+    }
+
 }

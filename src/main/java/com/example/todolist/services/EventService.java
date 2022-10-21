@@ -40,8 +40,6 @@ public class EventService {
 
     public Long getNextEvent() {
         try {
-            /*return Optional.of(eventRepository.findFirstByStartExecutionAfterOrderByEndExecution(LocalDateTime.now()))
-                    .orElse()*/ //TODO конструктор
             return eventRepository.findFirstByStartExecutionAfterOrderByEndExecution(LocalDateTime.now()).getId();
         } catch (NullPointerException e) {
             return 0L;
@@ -49,12 +47,11 @@ public class EventService {
     }
 
     public List<Event> getBetweenDatesListEvents(LocalDateTime start, LocalDateTime end) {
-        log.info("Запустился метод получения событий в отрезке времени");
         return eventRepository.findAllByStartExecutionBetween(start, end);
     }
 
-    public ArrayList<Event> getAllEventIsAfterDateNow() {
-        return (ArrayList<Event>) eventRepository.findAllByStartExecutionAfter(LocalDateTime.now());
+    public List<Event> getAllEventIsAfterDateNow() {
+        return eventRepository.findAllByStartExecutionAfter(LocalDateTime.now());
     }
 
 

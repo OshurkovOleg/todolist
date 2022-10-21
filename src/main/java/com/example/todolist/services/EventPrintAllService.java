@@ -1,32 +1,32 @@
 package com.example.todolist.services;
 
+import com.example.todolist.model.Event;
 import com.example.todolist.util.FourthConsumer;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
+
+import static com.example.todolist.constants.Constants.*;
+
+@Slf4j
 @Service
 public class EventPrintAllService {
-
-    private final EventService eventService;
+    private final PersonService personService;
 
     @Autowired
-    public EventPrintAllService(EventService eventService) {
-        this.eventService = eventService;
+    public EventPrintAllService(PersonService personService) {
+        this.personService = personService;
     }
 
     public void printAll(Long idChat, FourthConsumer<Long, String, Integer, Integer> sendMsg,
                          Integer commandType, Integer stepNumber) {
 
-    /*    eventService.getAllEventAsListFromBase().stream()
-                .sorted(Comparator.comparing(Event::getStartExecution))
-                .forEach(event -> sendMsg.accept(idChat, event.toString(), commandType, stepNumber));*/
-
-        eventService.getAllEventAsListFromBase().stream()
-                .filter(event -> event.getChatID() == idChat)
+        personService.getByChatId(idChat).getEvents().stream()
+                .sorted(Comparator.comparing((Event::getIdEvent)))
                 .forEach(event -> sendMsg.accept(idChat, event.toString(), commandType, stepNumber));
-
+        log.info(SELECTION_EVENTS_MADE);
 
     }
-
-
 }

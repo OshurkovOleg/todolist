@@ -7,7 +7,6 @@ public class ParserStringToLocalDate {
 
     private ParserStringToLocalDate() {
     }
-
     public static LocalDateTime parsing(String str) {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
         return LocalDateTime.parse(str, dtf);
